@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useAuth } from "@/lib/auth-context"
 import { useApp } from "@/lib/app-context"
 import Link from "next/link"
@@ -69,19 +71,55 @@ export default function ProfilePage() {
   const { user } = useAuth()
   const { sessions, addSessionFeedback } = useApp()
   const [feedbackSession, setFeedbackSession] = useState<string | null>(null)
-  const [feedbackText, setFeedbackText] = useState("")
+  const [feedbackRating, setFeedbackRating] = useState(0)
+  const [fbBehavior, setFbBehavior] = useState("")
+  const [fbHelpful, setFbHelpful] = useState("")
+  const [fbComfortable, setFbComfortable] = useState("")
+  const [fbListening, setFbListening] = useState("")
+  const [fbExercises, setFbExercises] = useState("")
+  const [fbRecommend, setFbRecommend] = useState("")
+  const [fbBookAgain, setFbBookAgain] = useState("")
+  const [fbImprove, setFbImprove] = useState("")
+  const [fbAdditional, setFbAdditional] = useState("")
   const [viewReport, setViewReport] = useState<string | null>(null)
 
   const completedSessions = sessions.filter(s => s.status === "completed").sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   const scheduledSessions = sessions.filter(s => s.status === "scheduled").sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   const totalSpent = sessions.filter(s => (s.status === "completed" || s.status === "scheduled") && !s.isFree).reduce((acc, s) => acc + s.price, 0)
 
+  const resetFeedbackForm = () => {
+    setFeedbackRating(0)
+    setFbBehavior("")
+    setFbHelpful("")
+    setFbComfortable("")
+    setFbListening("")
+    setFbExercises("")
+    setFbRecommend("")
+    setFbBookAgain("")
+    setFbImprove("")
+    setFbAdditional("")
+  }
+
   const handleSubmitFeedback = () => {
-    if (feedbackSession && feedbackText.trim()) {
-      addSessionFeedback(feedbackSession, feedbackText)
-      setFeedbackSession(null)
-      setFeedbackText("")
-    }
+    if (!feedbackSession || feedbackRating === 0) return
+    const feedbackSessionObj = sessions.find(s => s.id === feedbackSession)
+    const fullFeedback = [
+      `Overall Rating: ${feedbackRating}/5`,
+      `Therapist: ${feedbackSessionObj?.therapistName || "N/A"}`,
+      ``,
+      fbBehavior ? `Therapist Behavior & Professionalism: ${fbBehavior}` : "",
+      fbListening ? `Active Listening & Understanding: ${fbListening}` : "",
+      fbHelpful ? `Session Helpfulness: ${fbHelpful}` : "",
+      fbComfortable ? `Comfort & Safety: ${fbComfortable}` : "",
+      fbExercises ? `Exercises & Recommendations Clarity: ${fbExercises}` : "",
+      fbRecommend ? `Would Recommend: ${fbRecommend}` : "",
+      fbBookAgain ? `Would Book Again: ${fbBookAgain}` : "",
+      fbImprove ? `Suggestions for Improvement: ${fbImprove}` : "",
+      fbAdditional ? `Additional Comments: ${fbAdditional}` : "",
+    ].filter(Boolean).join("\n")
+    addSessionFeedback(feedbackSession, fullFeedback)
+    setFeedbackSession(null)
+    resetFeedbackForm()
   }
 
   return (
@@ -442,25 +480,158 @@ export default function ProfilePage() {
       </Tabs>
 
       {/* Feedback Dialog */}
-      <Dialog open={!!feedbackSession} onOpenChange={() => setFeedbackSession(null)}>
-        <DialogContent>
+      <Dialog open={!!feedbackSession} onOpenChange={(open) => { if (!open) { setFeedbackSession(null); resetFeedbackForm() } }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Session Feedback</DialogTitle>
             <DialogDescription>
-              Share your thoughts about this session
+              Help us improve by sharing your experience with {sessions.find(s => s.id === feedbackSession)?.therapistName}
             </DialogDescription>
           </DialogHeader>
-          <Textarea
-            placeholder="How was your session? What did you find helpful?"
-            value={feedbackText}
-            onChange={(e) => setFeedbackText(e.target.value)}
-            className="min-h-[120px]"
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFeedbackSession(null)}>
+
+          <div className="space-y-5 py-2">
+            {/* Q1: Overall Rating */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">1. How would you rate this session overall?</Label>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setFeedbackRating(star)}
+                    className="p-1 hover:scale-110 transition-transform"
+                    aria-label={`Rate ${star} stars`}
+                  >
+                    <Star className={cn("w-7 h-7", star <= feedbackRating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30")} />
+                  </button>
+                ))}
+                {feedbackRating > 0 && <span className="text-sm text-muted-foreground ml-2">{feedbackRating}/5</span>}
+              </div>
+            </div>
+
+            {/* Q2: Therapist behavior */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">2. How was the therapist{"'"}s behavior and professionalism?</Label>
+              <RadioGroup value={fbBehavior} onValueChange={setFbBehavior}>
+                {["Excellent - Very professional and empathetic", "Good - Professional and attentive", "Average - Could be more engaged", "Below Average - Felt disconnected"].map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <RadioGroupItem value={opt} id={`fb-beh-${opt}`} />
+                    <Label htmlFor={`fb-beh-${opt}`} className="text-sm font-normal">{opt}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Q3: Active listening */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">3. Did the therapist actively listen and understand your concerns?</Label>
+              <RadioGroup value={fbListening} onValueChange={setFbListening}>
+                {["Absolutely - Felt truly heard and understood", "Mostly - Listened well with minor gaps", "Somewhat - Missed a few important points", "Not really - Felt unheard or dismissed"].map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <RadioGroupItem value={opt} id={`fb-listen-${opt}`} />
+                    <Label htmlFor={`fb-listen-${opt}`} className="text-sm font-normal">{opt}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Q4: Session helpful */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">4. Did you find this session helpful for your concerns?</Label>
+              <RadioGroup value={fbHelpful} onValueChange={setFbHelpful}>
+                {["Very helpful - Gained valuable insights", "Somewhat helpful - Some useful points", "Neutral - Not sure yet", "Not helpful - Did not address my needs"].map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <RadioGroupItem value={opt} id={`fb-help-${opt}`} />
+                    <Label htmlFor={`fb-help-${opt}`} className="text-sm font-normal">{opt}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Q5: Comfort */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">5. Did you feel comfortable and safe during the session?</Label>
+              <RadioGroup value={fbComfortable} onValueChange={setFbComfortable}>
+                {["Very comfortable - Felt completely safe", "Comfortable - Mostly at ease", "Somewhat uncomfortable - A bit uneasy at times", "Uncomfortable - Did not feel safe"].map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <RadioGroupItem value={opt} id={`fb-comfort-${opt}`} />
+                    <Label htmlFor={`fb-comfort-${opt}`} className="text-sm font-normal">{opt}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Q6: Exercises clarity */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">6. Were the prescribed exercises and recommendations clear?</Label>
+              <RadioGroup value={fbExercises} onValueChange={setFbExercises}>
+                {["Very clear - I know exactly what to do", "Clear - Mostly understood", "Somewhat unclear - Need more explanation", "Not clear - Confusing instructions"].map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <RadioGroupItem value={opt} id={`fb-exer-${opt}`} />
+                    <Label htmlFor={`fb-exer-${opt}`} className="text-sm font-normal">{opt}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Q7: Recommend */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">7. Would you recommend this therapist to a friend or family member?</Label>
+              <RadioGroup value={fbRecommend} onValueChange={setFbRecommend}>
+                {["Definitely yes", "Probably yes", "Not sure", "Probably not"].map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <RadioGroupItem value={opt} id={`fb-rec-${opt}`} />
+                    <Label htmlFor={`fb-rec-${opt}`} className="text-sm font-normal">{opt}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Q8: Book again */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">8. Would you book another session with this therapist?</Label>
+              <RadioGroup value={fbBookAgain} onValueChange={setFbBookAgain}>
+                {["Yes, definitely", "Yes, but I want to try others too", "Maybe, need to think about it", "No, I would prefer a different therapist"].map((opt) => (
+                  <div key={opt} className="flex items-center gap-2">
+                    <RadioGroupItem value={opt} id={`fb-again-${opt}`} />
+                    <Label htmlFor={`fb-again-${opt}`} className="text-sm font-normal">{opt}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Q9: Improve */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">9. What could be improved in future sessions?</Label>
+              <Textarea
+                placeholder="Share any suggestions for improvement..."
+                value={fbImprove}
+                onChange={(e) => setFbImprove(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+
+            {/* Q10: Additional */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">10. Any additional comments or thoughts about the session?</Label>
+              <Textarea
+                placeholder="Anything else you would like to share..."
+                value={fbAdditional}
+                onChange={(e) => setFbAdditional(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 pt-2">
+            <Button variant="outline" onClick={() => { setFeedbackSession(null); resetFeedbackForm() }} className="sm:flex-1">
               Cancel
             </Button>
-            <Button onClick={handleSubmitFeedback} disabled={!feedbackText.trim()}>
+            <Button
+              onClick={handleSubmitFeedback}
+              disabled={feedbackRating === 0 || !fbBehavior || !fbHelpful || !fbComfortable}
+              className="sm:flex-1"
+            >
               Submit Feedback
             </Button>
           </DialogFooter>

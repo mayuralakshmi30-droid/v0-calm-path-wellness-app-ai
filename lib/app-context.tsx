@@ -214,9 +214,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   const addSessionFeedback = (sessionId: string, feedback: string) => {
-    setSessions((prev) =>
-      prev.map((s) => (s.id === sessionId ? { ...s, feedback } : s))
-    )
+    setSessions((prev) => {
+      const updated = prev.map((s) => (s.id === sessionId ? { ...s, feedback } : s))
+      if (user) {
+        localStorage.setItem(`calmpath_sessions_${user.id}`, JSON.stringify(updated))
+      }
+      return updated
+    })
   }
 
   const addSessionReport = (sessionId: string, report: string) => {
@@ -237,13 +241,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Single atomic update: mark completed + save report + mark link used
   const finishSession = (sessionId: string, report: string) => {
-    setSessions((prev) =>
-      prev.map((s) =>
+    setSessions((prev) => {
+      const updated = prev.map((s) =>
         s.id === sessionId
           ? { ...s, status: "completed" as const, report, meetLinkUsed: true }
           : s
       )
-    )
+      // Immediately persist to localStorage so profile page picks it up
+      if (user) {
+        localStorage.setItem(`calmpath_sessions_${user.id}`, JSON.stringify(updated))
+      }
+      return updated
+    })
   }
 
   const addChatMessage = (message: Omit<ChatMessage, "id" | "timestamp">) => {

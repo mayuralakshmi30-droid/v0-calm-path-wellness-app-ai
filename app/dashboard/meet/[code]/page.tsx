@@ -179,7 +179,9 @@ export default function MeetPage() {
   const [feedbackTherapistBehavior, setFeedbackTherapistBehavior] = useState("")
   const [feedbackSessionHelpful, setFeedbackSessionHelpful] = useState("")
   const [feedbackComfortable, setFeedbackComfortable] = useState("")
+  const [feedbackListening, setFeedbackListening] = useState("")
   const [feedbackRecommend, setFeedbackRecommend] = useState("")
+  const [feedbackBookAgain, setFeedbackBookAgain] = useState("")
   const [feedbackImprove, setFeedbackImprove] = useState("")
   const [feedbackExercisesClarity, setFeedbackExercisesClarity] = useState("")
   const [feedbackAdditional, setFeedbackAdditional] = useState("")
@@ -240,12 +242,16 @@ export default function MeetPage() {
     if (!session) return
     const fullFeedback = [
       `Overall Rating: ${feedbackRating}/5`,
-      `Therapist Behavior: ${feedbackTherapistBehavior}`,
-      `Session Helpful: ${feedbackSessionHelpful}`,
-      `Felt Comfortable: ${feedbackComfortable}`,
+      `Therapist: ${session?.therapistName || "N/A"}`,
+      ``,
+      `Therapist Behavior & Professionalism: ${feedbackTherapistBehavior}`,
+      feedbackListening ? `Active Listening & Understanding: ${feedbackListening}` : "",
+      `Session Helpfulness: ${feedbackSessionHelpful}`,
+      `Comfort & Safety: ${feedbackComfortable}`,
+      `Exercises & Recommendations Clarity: ${feedbackExercisesClarity}`,
       `Would Recommend: ${feedbackRecommend}`,
-      `Exercises Clarity: ${feedbackExercisesClarity}`,
-      `What Could Improve: ${feedbackImprove}`,
+      feedbackBookAgain ? `Would Book Again: ${feedbackBookAgain}` : "",
+      feedbackImprove ? `Suggestions for Improvement: ${feedbackImprove}` : "",
       feedbackAdditional ? `Additional Comments: ${feedbackAdditional}` : "",
     ].filter(Boolean).join("\n")
     addSessionFeedback(session.id, fullFeedback)
@@ -453,9 +459,32 @@ export default function MeetPage() {
                       </RadioGroup>
                     </div>
 
+                    {/* Active listening */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">3. Did the therapist actively listen and understand your concerns?</Label>
+                      <RadioGroup value={feedbackListening} onValueChange={setFeedbackListening}>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="Absolutely - Felt truly heard and understood" id="listen-abs" />
+                          <Label htmlFor="listen-abs" className="text-sm font-normal">Absolutely - Felt truly heard and understood</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="Mostly - Listened well with minor gaps" id="listen-mostly" />
+                          <Label htmlFor="listen-mostly" className="text-sm font-normal">Mostly - Listened well with minor gaps</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="Somewhat - Missed a few important points" id="listen-some" />
+                          <Label htmlFor="listen-some" className="text-sm font-normal">Somewhat - Missed a few important points</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="Not really - Felt unheard or dismissed" id="listen-not" />
+                          <Label htmlFor="listen-not" className="text-sm font-normal">Not really - Felt unheard or dismissed</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
                     {/* Session helpful */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold">3. Did you find this session helpful for your concerns?</Label>
+                      <Label className="text-sm font-semibold">4. Did you find this session helpful for your concerns?</Label>
                       <RadioGroup value={feedbackSessionHelpful} onValueChange={setFeedbackSessionHelpful}>
                         <div className="flex items-center gap-2">
                           <RadioGroupItem value="Very helpful" id="helpful-very" />
@@ -478,7 +507,7 @@ export default function MeetPage() {
 
                     {/* Comfortable */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold">4. Did you feel comfortable and safe during the session?</Label>
+                      <Label className="text-sm font-semibold">5. Did you feel comfortable and safe during the session?</Label>
                       <RadioGroup value={feedbackComfortable} onValueChange={setFeedbackComfortable}>
                         <div className="flex items-center gap-2">
                           <RadioGroupItem value="Very comfortable" id="comfort-very" />
@@ -501,7 +530,7 @@ export default function MeetPage() {
 
                     {/* Exercises clarity */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold">5. Were the prescribed exercises and recommendations clear?</Label>
+                      <Label className="text-sm font-semibold">6. Were the prescribed exercises and recommendations clear?</Label>
                       <RadioGroup value={feedbackExercisesClarity} onValueChange={setFeedbackExercisesClarity}>
                         <div className="flex items-center gap-2">
                           <RadioGroupItem value="Very clear" id="clarity-very" />
@@ -524,7 +553,7 @@ export default function MeetPage() {
 
                     {/* Recommend */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold">6. Would you recommend this therapist to others?</Label>
+                      <Label className="text-sm font-semibold">7. Would you recommend this therapist to a friend or family member?</Label>
                       <RadioGroup value={feedbackRecommend} onValueChange={setFeedbackRecommend}>
                         <div className="flex items-center gap-2">
                           <RadioGroupItem value="Definitely yes" id="recommend-yes" />
@@ -545,9 +574,32 @@ export default function MeetPage() {
                       </RadioGroup>
                     </div>
 
+                    {/* Book again */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">8. Would you book another session with this therapist?</Label>
+                      <RadioGroup value={feedbackBookAgain} onValueChange={setFeedbackBookAgain}>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="Yes, definitely" id="again-yes" />
+                          <Label htmlFor="again-yes" className="text-sm font-normal">Yes, definitely</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="Yes, but I want to try others too" id="again-maybe" />
+                          <Label htmlFor="again-maybe" className="text-sm font-normal">Yes, but I want to try others too</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="Maybe, need to think about it" id="again-think" />
+                          <Label htmlFor="again-think" className="text-sm font-normal">Maybe, need to think about it</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="No, I would prefer a different therapist" id="again-no" />
+                          <Label htmlFor="again-no" className="text-sm font-normal">No, I would prefer a different therapist</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
                     {/* What could improve */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold">7. What could be improved in future sessions?</Label>
+                      <Label className="text-sm font-semibold">9. What could be improved in future sessions?</Label>
                       <Textarea
                         placeholder="Share any suggestions for improvement..."
                         value={feedbackImprove}
@@ -558,7 +610,7 @@ export default function MeetPage() {
 
                     {/* Additional comments */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold">8. Any additional comments or thoughts?</Label>
+                      <Label className="text-sm font-semibold">10. Any additional comments or thoughts about the session?</Label>
                       <Textarea
                         placeholder="Anything else you would like to share..."
                         value={feedbackAdditional}
