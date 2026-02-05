@@ -26,21 +26,23 @@ export default function DashboardPage() {
   const allSpecialties = Array.from(new Set(therapists.flatMap(t => t.specialties))).sort()
   const allTypes = Array.from(new Set(therapists.map(t => t.title))).sort()
 
-  // Filter therapists
-  const filteredTherapists = therapists.filter((t) => {
-    const matchesSearch = searchQuery === "" || 
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.specialties.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      t.languages.some(l => l.toLowerCase().includes(searchQuery.toLowerCase()))
-    
-    const matchesLanguage = languageFilter === "all" || t.languages.includes(languageFilter)
-    const matchesSpecialty = specialtyFilter === "all" || 
-      t.specialties.includes(specialtyFilter) || 
-      t.title === specialtyFilter
-    
-    return matchesSearch && matchesLanguage && matchesSpecialty
-  })
+  // Filter therapists and sort by highest rating first
+  const filteredTherapists = therapists
+    .filter((t) => {
+      const matchesSearch = searchQuery === "" || 
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.specialties.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        t.languages.some(l => l.toLowerCase().includes(searchQuery.toLowerCase()))
+      
+      const matchesLanguage = languageFilter === "all" || t.languages.includes(languageFilter)
+      const matchesSpecialty = specialtyFilter === "all" || 
+        t.specialties.includes(specialtyFilter) || 
+        t.title === specialtyFilter
+      
+      return matchesSearch && matchesLanguage && matchesSpecialty
+    })
+    .sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount)
 
   const hasActiveFilters = searchQuery !== "" || languageFilter !== "all" || specialtyFilter !== "all"
 
