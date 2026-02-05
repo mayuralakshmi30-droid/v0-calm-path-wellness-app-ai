@@ -40,6 +40,8 @@ export interface Session {
   isFree: boolean
   feedback?: string
   report?: string
+  meetLink?: string
+  meetLinkUsed?: boolean
 }
 
 export interface ChatMessage {
@@ -64,6 +66,8 @@ interface AppContextType {
   cancelSession: (sessionId: string) => void
   completeSession: (sessionId: string) => void
   addSessionFeedback: (sessionId: string, feedback: string) => void
+  markMeetLinkUsed: (sessionId: string) => void
+  getSessionByMeetCode: (meetCode: string) => Session | undefined
   chatMessages: ChatMessage[]
   addChatMessage: (message: Omit<ChatMessage, "id" | "timestamp">) => void
   getChatMessages: (therapistId: string) => ChatMessage[]
@@ -183,10 +187,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   const bookSession = (session: Omit<Session, "id" | "status">) => {
+    const sessionId = crypto.randomUUID()
+    const meetCode = sessionId.split("-").slice(0, 2).join("")
     const newSession: Session = {
       ...session,
-      id: crypto.randomUUID(),
+      id: sessionId,
       status: "scheduled",
+      meetLink: `/dashboard/meet/${meetCode}`,
+      meetLinkUsed: false,
     }
     setSessions((prev) => [...prev, newSession])
   }
@@ -207,6 +215,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSessions((prev) =>
       prev.map((s) => (s.id === sessionId ? { ...s, feedback } : s))
     )
+  }
+
+  const markMeetLinkUsed = (sessionId: string) => {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, meetLinkUsed: true } : s))
+    )
+  }
+
+  const getSessionByMeetCode = (meetCode: string): Session | undefined => {
+    return sessions.find((s) => s.meetLink === `/dashboard/meet/${meetCode}`)
   }
 
   const addChatMessage = (message: Omit<ChatMessage, "id" | "timestamp">) => {
@@ -238,6 +256,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         cancelSession,
         completeSession,
         addSessionFeedback,
+        markMeetLinkUsed,
+        getSessionByMeetCode,
         chatMessages,
         addChatMessage,
         getChatMessages,

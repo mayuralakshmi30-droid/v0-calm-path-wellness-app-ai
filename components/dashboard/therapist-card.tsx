@@ -365,57 +365,44 @@ export function TherapistCard({ therapist, onChat }: TherapistCardProps) {
                 </div>
               </div>
 
-              {/* Transaction ID input */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="txn-id">Transaction / UTR ID</label>
-                <div className="flex gap-2">
-                  <input
-                    id="txn-id"
-                    type="text"
-                    placeholder="Enter your transaction ID"
-                    value={transactionId}
-                    onChange={(e) => setTransactionId(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
-              </div>
+              {/* Payment Done button */}
+              {!paymentVerified && !verifyingPayment && (
+                <Button
+                  onClick={() => {
+                    setPaymentVerified(true)
+                    setTimeout(() => {
+                      setBookingStep("scheduling")
+                    }, 1000)
+                  }}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  Payment Done
+                </Button>
+              )}
 
               {/* Verification status */}
               {paymentVerified && (
                 <div className="flex items-center gap-2 p-3 bg-primary/10 border border-primary/20 rounded-lg">
                   <ShieldCheck className="w-5 h-5 text-primary flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-primary">Payment Verified</p>
+                    <p className="text-sm font-medium text-primary">Payment Confirmed</p>
                     <p className="text-xs text-muted-foreground">Redirecting to scheduling...</p>
                   </div>
                 </div>
               )}
 
-              <DialogFooter className="flex-col sm:flex-row gap-2">
-                <Button variant="outline" onClick={() => setShowBooking(false)} className="sm:flex-1">
+              {verifyingPayment && (
+                <div className="flex items-center justify-center gap-2 py-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Processing...</span>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowBooking(false)} className="w-full">
                   Cancel
-                </Button>
-                <Button
-                  onClick={handleVerifyPayment}
-                  disabled={!transactionId.trim() || verifyingPayment || paymentVerified}
-                  className="sm:flex-1"
-                >
-                  {verifyingPayment ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : paymentVerified ? (
-                    <>
-                      <ShieldCheck className="w-4 h-4 mr-2" />
-                      Verified
-                    </>
-                  ) : (
-                    <>
-                      <QrCode className="w-4 h-4 mr-2" />
-                      Verify Payment
-                    </>
-                  )}
                 </Button>
               </DialogFooter>
             </div>

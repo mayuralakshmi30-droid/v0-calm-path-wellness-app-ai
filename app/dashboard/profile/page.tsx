@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/lib/auth-context"
 import { useApp } from "@/lib/app-context"
-import { User, Calendar, Clock, IndianRupee, Star, Download, MessageSquare, Check, X, MapPin, Globe } from "lucide-react"
+import Link from "next/link"
+import { User, Calendar, Clock, IndianRupee, Star, Download, MessageSquare, Check, X, MapPin, Globe, Video, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function ProfilePage() {
@@ -158,7 +159,7 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-3">
                   {scheduledSessions.map((session) => (
-                    <div key={session.id} className="p-4 bg-muted/50 rounded-lg">
+                    <div key={session.id} className="p-4 bg-muted/50 rounded-lg space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{session.therapistName}</p>
@@ -178,6 +179,30 @@ export default function ProfilePage() {
                           )}
                         </div>
                       </div>
+                      {/* Video Call Link */}
+                      {session.meetLink && (
+                        <div className="flex items-center gap-3 p-3 bg-background border border-border rounded-lg">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Video className="w-4 h-4 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-muted-foreground">CalmPath Video Call</p>
+                            <p className="text-sm font-medium truncate">
+                              {session.meetLinkUsed ? "Link expired (one-time use)" : "Waiting for therapist to start"}
+                            </p>
+                          </div>
+                          {!session.meetLinkUsed ? (
+                            <Link href={session.meetLink}>
+                              <Button size="sm" variant="default" className="flex-shrink-0">
+                                <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                                Join
+                              </Button>
+                            </Link>
+                          ) : (
+                            <Badge variant="secondary" className="flex-shrink-0">Expired</Badge>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
