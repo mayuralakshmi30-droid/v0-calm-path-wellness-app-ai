@@ -308,35 +308,128 @@ export default function AIInsightsPage() {
       })
     }
 
-    // --- THERAPIST REPORT INSIGHTS ---
+    // --- THERAPIST REPORT INSIGHTS (deep analysis) ---
     if (sessionsWithReports.length > 0) {
       const latestReport = sessionsWithReports[sessionsWithReports.length - 1]
+      const reportText = (latestReport.report || "").toLowerCase()
+
       result.push({
         type: "info",
-        title: "Therapist Report Available",
-        detail: `Your last session with ${latestReport.therapistName} on ${new Date(latestReport.date).toLocaleDateString()} generated a report. Review the key recommendations and add any prescribed exercises to your Habit Tracker for accountability between sessions.`,
+        title: `Latest Report: ${latestReport.therapistName}`,
+        detail: `Session on ${new Date(latestReport.date).toLocaleDateString("en-US", { month: "long", day: "numeric" })} -- Review the key recommendations below and add prescribed exercises to your Habit Tracker for accountability.`,
       })
+
+      // Analyze report content for specific topics
+      if (reportText.includes("anxiety") || reportText.includes("anxious") || reportText.includes("worry")) {
+        result.push({
+          type: "suggestion",
+          title: "Report Mentions Anxiety",
+          detail: "Your therapist's report references anxiety. Consider tracking breathing exercises, grounding techniques, or progressive muscle relaxation in your Habit Tracker. These are evidence-based interventions that reduce anxiety symptoms when practiced consistently.",
+        })
+      }
+      if (reportText.includes("sleep") || reportText.includes("insomnia") || reportText.includes("rest")) {
+        result.push({
+          type: "suggestion",
+          title: "Sleep Discussed in Therapy",
+          detail: "Sleep was mentioned in your therapist's report. Track sleep-related habits like consistent bedtime, screen-free evenings, and sleep journal entries. Share your habit tracker progress with your therapist in the next session.",
+        })
+      }
+      if (reportText.includes("exercise") || reportText.includes("physical") || reportText.includes("movement") || reportText.includes("walk")) {
+        result.push({
+          type: "suggestion",
+          title: "Physical Activity Recommended",
+          detail: "Your therapist recommended physical activity. Even 20-30 minutes of daily movement significantly impacts mood and stress. Add exercise habits to your tracker and use the timer feature to stay consistent.",
+        })
+      }
+      if (reportText.includes("meditation") || reportText.includes("mindful") || reportText.includes("breathing") || reportText.includes("relaxation")) {
+        result.push({
+          type: "suggestion",
+          title: "Mindfulness Exercises Prescribed",
+          detail: "Mindfulness or relaxation techniques were recommended by your therapist. Use the preset mindfulness habits (guided meditation, deep breathing, body scan) to build a daily practice. Consistency is key -- even 5 minutes daily makes a difference.",
+        })
+      }
+      if (reportText.includes("journal") || reportText.includes("writing") || reportText.includes("diary")) {
+        result.push({
+          type: "suggestion",
+          title: "Journaling Recommended",
+          detail: "Your therapist suggested journaling as part of your treatment plan. Add gratitude journaling or therapy journal entries to your habit tracker. Writing about thoughts and emotions has been shown to improve emotional processing and reduce rumination.",
+        })
+      }
+      if (reportText.includes("cbt") || reportText.includes("cognitive") || reportText.includes("thought")) {
+        result.push({
+          type: "info",
+          title: "CBT Techniques in Your Plan",
+          detail: "Cognitive-behavioral techniques were part of your session. Track CBT exercises in the Therapy category of your habit tracker. Consistent practice between sessions accelerates therapeutic progress by up to 50%.",
+        })
+      }
+      if (reportText.includes("stress") || reportText.includes("overwhelm") || reportText.includes("burnout")) {
+        result.push({
+          type: "warning",
+          title: "Stress Management Focus",
+          detail: "Your therapist noted stress or overwhelm concerns. Cross-referencing with your mood data, prioritize stress-reduction habits like breathing exercises, short walks, and regular breaks. Track these consistently and review progress at your next session.",
+        })
+      }
+      if (reportText.includes("relationship") || reportText.includes("family") || reportText.includes("partner") || reportText.includes("communication")) {
+        result.push({
+          type: "info",
+          title: "Relationship Themes Discussed",
+          detail: "Relationship or communication topics appeared in your report. Consider tracking self-care habits and communication exercises your therapist suggested. Maintaining emotional balance through personal habits improves relationship dynamics.",
+        })
+      }
+
+      // Multi-session analysis
+      if (sessionsWithReports.length >= 2) {
+        const prevReport = sessionsWithReports[sessionsWithReports.length - 2]
+        result.push({
+          type: "info",
+          title: `${sessionsWithReports.length} Session Reports Analyzed`,
+          detail: `Tracking progress across ${sessionsWithReports.length} sessions with ${[...new Set(sessionsWithReports.map(s => s.therapistName))].join(", ")}. Your most recent session was on ${new Date(latestReport.date).toLocaleDateString()} and the previous on ${new Date(prevReport.date).toLocaleDateString()}. Consistent attendance combined with daily habit tracking produces the best outcomes.`,
+        })
+      }
 
       // Cross-reference: therapy habits
       const hasTherapyHabits = habits.some((h) => h.category === "therapy")
-      if (!hasTherapyHabits && sessionsWithReports.length > 0) {
+      if (!hasTherapyHabits) {
         result.push({
-          type: "suggestion",
-          title: "Track Therapist-Prescribed Exercises",
-          detail: "You have therapist reports but no therapy-category habits. Adding exercises your therapist recommended (like CBT worksheets, grounding techniques, or journaling) helps maintain progress between sessions.",
+          type: "warning",
+          title: "No Therapy Habits Tracked",
+          detail: "You have therapist reports but no therapy-category habits in your tracker. Adding exercises your therapist recommended (CBT worksheets, grounding techniques, journaling) helps maintain progress between sessions and earns points toward discounts.",
         })
       }
     }
 
+    // Feedback quality analysis
     if (sessionsWithFeedback.length > 0) {
       const positiveCount = sessionsWithFeedback.filter((s) =>
         s.feedback?.includes("5/5") || s.feedback?.includes("4/5")
+      ).length
+      const negativeCount = sessionsWithFeedback.filter((s) =>
+        s.feedback?.includes("1/5") || s.feedback?.includes("2/5")
       ).length
       if (positiveCount > 0) {
         result.push({
           type: "positive",
           title: "Positive Therapy Experience",
-          detail: `${positiveCount} of your ${sessionsWithFeedback.length} sessions received high ratings. Continuing with a therapist you connect well with leads to better outcomes. Consider booking regular follow-up sessions.`,
+          detail: `${positiveCount} of your ${sessionsWithFeedback.length} sessions received high ratings (4-5 stars). Continuing with a therapist you connect well with leads to better outcomes. Consider booking regular follow-up sessions.`,
+        })
+      }
+      if (negativeCount > 0) {
+        result.push({
+          type: "suggestion",
+          title: "Consider a Different Therapist",
+          detail: `${negativeCount} session(s) received low ratings. It is perfectly normal to not click with every therapist. Browse other available therapists -- finding the right fit is one of the most important factors in therapy success.`,
+        })
+      }
+
+      // Analyze feedback for "would not book again" patterns
+      const wouldNotBook = sessionsWithFeedback.filter((s) =>
+        s.feedback?.includes("No, I would prefer a different therapist")
+      ).length
+      if (wouldNotBook > 0) {
+        result.push({
+          type: "suggestion",
+          title: "Explore New Therapists",
+          detail: `You indicated you would prefer a different therapist in ${wouldNotBook} session feedback(s). This is completely okay -- therapeutic fit matters. Try filtering therapists by specialty or language to find someone who better matches your needs.`,
         })
       }
     }
@@ -751,30 +844,91 @@ export default function AIInsightsPage() {
           </div>
 
           {sessionsWithReports.length > 0 ? (
+            <>
             <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle>Therapist Reports & Recommendations</CardTitle>
-                <CardDescription>Key takeaways from your therapy sessions that should inform your daily habits</CardDescription>
+                <CardDescription>Key takeaways from your therapy sessions that inform your daily habits</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {sessionsWithReports.slice(-3).reverse().map((session) => (
-                  <div key={session.id} className="border border-border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-primary" />
-                        <span className="font-medium text-sm">{session.therapistName}</span>
+                {sessionsWithReports.slice(-3).reverse().map((session) => {
+                  const report = (session.report || "").toLowerCase()
+                  const topics: string[] = []
+                  if (report.includes("anxiety") || report.includes("anxious")) topics.push("Anxiety")
+                  if (report.includes("sleep") || report.includes("insomnia")) topics.push("Sleep")
+                  if (report.includes("stress") || report.includes("overwhelm")) topics.push("Stress")
+                  if (report.includes("exercise") || report.includes("physical")) topics.push("Exercise")
+                  if (report.includes("meditation") || report.includes("mindful")) topics.push("Mindfulness")
+                  if (report.includes("cbt") || report.includes("cognitive")) topics.push("CBT")
+                  if (report.includes("journal")) topics.push("Journaling")
+                  if (report.includes("relationship") || report.includes("family")) topics.push("Relationships")
+                  if (report.includes("depression") || report.includes("mood")) topics.push("Mood")
+                  return (
+                    <div key={session.id} className="border border-border rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-primary" />
+                          <span className="font-medium text-sm">{session.therapistName}</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {new Date(session.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        {new Date(session.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      </Badge>
+                      {topics.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {topics.map((t) => (
+                            <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-sm text-muted-foreground whitespace-pre-line line-clamp-6">
+                        {session.report}
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line line-clamp-6">
-                      {session.report}
-                    </p>
-                  </div>
-                ))}
+                  )
+                })}
               </CardContent>
             </Card>
+
+            {/* Feedback Analysis */}
+            {sessionsWithFeedback.length > 0 && (
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle>Your Feedback Analysis</CardTitle>
+                  <CardDescription>Patterns from your session feedback help optimize future sessions</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {sessionsWithFeedback.slice(-3).reverse().map((session) => {
+                    const lines = (session.feedback || "").split("\n").filter(l => l.trim())
+                    const ratingLine = lines.find(l => l.includes("Overall Rating"))
+                    const rating = ratingLine ? parseInt(ratingLine.split(":")[1]) : 0
+                    return (
+                      <div key={session.id} className={cn(
+                        "border-l-4 rounded-r-lg p-4",
+                        rating >= 4 ? "border-l-green-500 bg-green-50/50 dark:bg-green-950/20" :
+                        rating >= 3 ? "border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20" :
+                        "border-l-red-500 bg-red-50/50 dark:bg-red-950/20"
+                      )}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-sm">{session.therapistName}</span>
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Award key={i} className={cn("w-3.5 h-3.5", i < rating ? "text-amber-400 fill-amber-400" : "text-muted-foreground/20")} />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground space-y-0.5">
+                          {lines.filter(l => !l.includes("Overall Rating") && !l.includes("Therapist:") && l.includes(":")).slice(0, 4).map((line, i) => (
+                            <p key={i}>{line}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </CardContent>
+              </Card>
+            )}
+            </>
           ) : (
             <Card className="bg-card border-border">
               <CardContent className="py-12 text-center">

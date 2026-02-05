@@ -374,22 +374,14 @@ export default function ProfilePage() {
                         </div>
                       )}
 
-                      {/* Feedback Display */}
-                      {session.feedback && (
-                        <div className="p-3 bg-background border border-border rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Star className="w-4 h-4 text-amber-500" />
-                            <span className="text-sm font-medium">Your Feedback</span>
-                            <Badge variant="secondary" className="text-xs">Submitted</Badge>
-                          </div>
-                          <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed">
-                            {session.feedback}
-                          </pre>
+                      {/* Feedback status */}
+                      {session.feedback ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="w-4 h-4 text-green-600" />
+                          <span>Feedback submitted</span>
+                          <span className="text-xs">-- View details in <Link href="/dashboard/ai-insights" className="text-primary underline">AI Behavioral Insights</Link></span>
                         </div>
-                      )}
-
-                      {/* Feedback Button (if no feedback yet) */}
-                      {!session.feedback && (
+                      ) : (
                         <Button
                           variant="outline"
                           size="sm"

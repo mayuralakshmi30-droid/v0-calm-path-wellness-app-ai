@@ -850,14 +850,15 @@ export default function HabitTrackerPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Points Per Completion</Label>
+                  <Label>Points Per Completion (max 15)</Label>
                   <Input
                     type="number"
                     min={1}
-                    max={100}
+                    max={15}
                     value={newHabitPoints}
-                    onChange={(e) => setNewHabitPoints(Number(e.target.value))}
+                    onChange={(e) => setNewHabitPoints(Math.min(15, Math.max(1, Number(e.target.value))))}
                   />
+                  <p className="text-[11px] text-muted-foreground">Maximum 15 points per completion for custom habits</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Timer (minutes, 0 = none)</Label>
