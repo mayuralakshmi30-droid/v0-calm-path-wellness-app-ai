@@ -16,8 +16,13 @@ export interface MoodEntry {
 export interface HabitEntry {
   id: string
   name: string
+  category: "exercise" | "sleep" | "mindfulness" | "nutrition" | "therapy" | "custom"
   frequency: "daily" | "weekly"
   completedDates: string[]
+  proofDates: Record<string, string> // date -> proof note/description
+  timerSeconds: number // target timer duration in seconds (0 = no timer)
+  timerLogs: Record<string, number> // date -> actual seconds completed
+  points: number // points earned per completion
   createdAt: string
   color: string
 }
@@ -56,9 +61,13 @@ interface AppContextType {
   moodEntries: MoodEntry[]
   addMoodEntry: (entry: Omit<MoodEntry, "id">) => void
   habits: HabitEntry[]
-  addHabit: (habit: Omit<HabitEntry, "id" | "completedDates" | "createdAt">) => void
+  addHabit: (habit: Omit<HabitEntry, "id" | "completedDates" | "createdAt" | "proofDates" | "timerLogs">) => void
   toggleHabitCompletion: (habitId: string, date: string) => void
+  addHabitProof: (habitId: string, date: string, proof: string) => void
+  logHabitTimer: (habitId: string, date: string, seconds: number) => void
   deleteHabit: (habitId: string) => void
+  getTotalPoints: () => number
+  getStreak: (habitId: string) => number
   journalEntries: JournalEntry[]
   addJournalEntry: (content: string) => void
   sessions: Session[]
@@ -147,11 +156,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMoodEntries((prev) => [newEntry, ...prev])
   }
 
-  const addHabit = (habit: Omit<HabitEntry, "id" | "completedDates" | "createdAt">) => {
+  const addHabit = (habit: Omit<HabitEntry, "id" | "completedDates" | "createdAt" | "proofDates" | "timerLogs">) => {
     const newHabit: HabitEntry = {
       ...habit,
       id: crypto.randomUUID(),
       completedDates: [],
+      proofDates: {},
+      timerLogs: {},
       createdAt: new Date().toISOString(),
     }
     setHabits((prev) => [...prev, newHabit])
@@ -174,8 +185,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  const addHabitProof = (habitId: string, date: string, proof: string) => {
+    setHabits((prev) =>
+      prev.map((h) =>
+        h.id === habitId ? { ...h, proofDates: { ...h.proofDates, [date]: proof } } : h
+      )
+    )
+  }
+
+  const logHabitTimer = (habitId: string, date: string, seconds: number) => {
+    setHabits((prev) =>
+      prev.map((h) =>
+        h.id === habitId ? { ...h, timerLogs: { ...(h.timerLogs || {}), [date]: seconds } } : h
+      )
+    )
+  }
+
   const deleteHabit = (habitId: string) => {
     setHabits((prev) => prev.filter((h) => h.id !== habitId))
+  }
+
+  const getTotalPoints = () => {
+    return habits.reduce((total, h) => total + h.completedDates.length * (h.points || 10), 0)
+  }
+
+  const getStreak = (habitId: string) => {
+    const habit = habits.find((h) => h.id === habitId)
+    if (!habit || habit.completedDates.length === 0) return 0
+    const sorted = [...habit.completedDates].sort().reverse()
+    let streak = 0
+    const checkDate = new Date()
+    for (let i = 0; i < 365; i++) {
+      const dateStr = checkDate.toISOString().split("T")[0]
+      if (sorted.includes(dateStr)) {
+        streak++
+        checkDate.setDate(checkDate.getDate() - 1)
+      } else if (i > 0) {
+        break
+      } else {
+        checkDate.setDate(checkDate.getDate() - 1)
+      }
+    }
+    return streak
   }
 
   const addJournalEntry = (content: string) => {
@@ -276,7 +327,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         habits,
         addHabit,
         toggleHabitCompletion,
+        addHabitProof,
+        logHabitTimer,
         deleteHabit,
+        getTotalPoints,
+        getStreak,
         journalEntries,
         addJournalEntry,
         sessions,
