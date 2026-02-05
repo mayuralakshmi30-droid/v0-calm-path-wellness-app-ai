@@ -10,12 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Clock, Gift, TrendingUp, Search, X } from "lucide-react"
+import { Calendar, Clock, Gift, TrendingUp, Search, X, Flame, Trophy, ArrowRight } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const { sessions, moodEntries } = useApp()
+  const { sessions, moodEntries, habits, getStreak, getTotalPoints } = useApp()
   const [chatTherapist, setChatTherapist] = useState<Therapist | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [languageFilter, setLanguageFilter] = useState("all")
@@ -55,6 +56,19 @@ export default function DashboardPage() {
   const upcomingSessions = sessions.filter(s => s.status === "scheduled")
   const completedSessions = sessions.filter(s => s.status === "completed")
   const latestMood = moodEntries[0]
+  const bestStreak = habits.length > 0 ? Math.max(...habits.map(h => getStreak(h.id))) : 0
+  const totalPoints = getTotalPoints()
+
+  // Streak discount tiers
+  const streakTiers = [
+    { days: 7, discount: "5%" },
+    { days: 14, discount: "10%" },
+    { days: 30, discount: "15%" },
+    { days: 60, discount: "20%" },
+    { days: 100, discount: "30%" },
+  ]
+  const currentDiscount = streakTiers.filter(t => bestStreak >= t.days).pop()
+  const nextTier = streakTiers.find(t => bestStreak < t.days)
 
   return (
     <div className="space-y-8">
@@ -131,6 +145,45 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Streak & Rewards Banner */}
+      <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                <Flame className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">
+                  {bestStreak > 0
+                    ? `${bestStreak}-Day Streak!`
+                    : "Start Your Streak Today"}
+                  {currentDiscount && (
+                    <span className="ml-2 text-sm font-normal text-primary">({currentDiscount.discount} off therapy)</span>
+                  )}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {nextTier
+                    ? `${nextTier.days - bestStreak} more days to unlock ${nextTier.discount} discount on therapy sessions`
+                    : "Max streak reward unlocked! 30% off all therapy sessions"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
+                <Trophy className="w-3.5 h-3.5" />
+                {totalPoints} pts
+              </div>
+              <Link href="/dashboard/ai-insights">
+                <Button size="sm" variant="outline" className="gap-1">
+                  View Insights <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Therapists Section */}
       <div>

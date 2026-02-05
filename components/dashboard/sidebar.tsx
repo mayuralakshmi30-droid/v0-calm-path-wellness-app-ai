@@ -20,6 +20,7 @@ import {
   Menu,
   X,
   Video,
+  BrainCircuit,
 } from "lucide-react"
 import { useState } from "react"
 
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/dashboard/chatbot", label: "Chatbot", icon: MessageCircle },
   { href: "/dashboard/journal", label: "Journal", icon: BookOpen },
   { href: "/dashboard/games", label: "Games", icon: Gamepad2 },
+  { href: "/dashboard/ai-insights", label: "AI Behavioral Insights", icon: BrainCircuit },
   { href: "/dashboard/profile", label: "My Profile", icon: User },
 ]
 
