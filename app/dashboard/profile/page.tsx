@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/lib/auth-context"
 import { useApp } from "@/lib/app-context"
-import { User, Calendar, Clock, IndianRupee, Star, Download, MessageSquare, Check, X } from "lucide-react"
+import { User, Calendar, Clock, IndianRupee, Star, Download, MessageSquare, Check, X, MapPin, Globe } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function ProfilePage() {
@@ -47,6 +47,23 @@ export default function ProfilePage() {
             <div className="text-center sm:text-left flex-1">
               <h2 className="text-2xl font-bold">{user?.name}</h2>
               <p className="text-muted-foreground">{user?.email}</p>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-muted-foreground">
+                {user?.age && (
+                  <span>{user.age} years old</span>
+                )}
+                {user?.location && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {user.location}
+                  </span>
+                )}
+                {user?.languagePreference && (
+                  <span className="flex items-center gap-1">
+                    <Globe className="w-3 h-3" />
+                    {user.languagePreference}
+                  </span>
+                )}
+              </div>
               {user?.aboutYourself && (
                 <p className="text-sm text-muted-foreground mt-2 max-w-md">{user.aboutYourself}</p>
               )}

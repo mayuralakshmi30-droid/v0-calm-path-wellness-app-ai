@@ -7,6 +7,9 @@ export interface User {
   name: string
   email: string
   aboutYourself: string
+  age: number
+  location: string
+  languagePreference: string
   completedSessions: number
   firstSessionUsed: boolean
 }
@@ -15,7 +18,7 @@ interface AuthContextType {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<boolean>
-  signup: (name: string, email: string, password: string, aboutYourself: string) => Promise<boolean>
+  signup: (name: string, email: string, password: string, aboutYourself: string, age: number, location: string, languagePreference: string) => Promise<boolean>
   logout: () => void
   updateUser: (updates: Partial<User>) => void
 }
@@ -49,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false
   }
 
-  const signup = async (name: string, email: string, password: string, aboutYourself: string): Promise<boolean> => {
+  const signup = async (name: string, email: string, password: string, aboutYourself: string, age: number, location: string, languagePreference: string): Promise<boolean> => {
     const storedUsers = JSON.parse(localStorage.getItem("calmpath_users") || "[]")
     
     // Check if user already exists
@@ -63,6 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       aboutYourself,
+      age,
+      location,
+      languagePreference,
       completedSessions: 0,
       firstSessionUsed: false,
     }

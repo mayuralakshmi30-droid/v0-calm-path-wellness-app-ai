@@ -11,6 +11,7 @@ export interface Therapist {
     day: string
     times: string[]
   }[]
+  languages: string[]
   bio: string
   image: string
 }
@@ -30,6 +31,7 @@ export const therapists: Therapist[] = [
       { day: "Wednesday", times: ["10:00 AM", "1:00 PM", "3:00 PM"] },
       { day: "Friday", times: ["9:00 AM", "11:00 AM", "2:00 PM"] },
     ],
+    languages: ["English", "Hindi", "French"],
     bio: "Dr. Mitchell specializes in helping individuals overcome anxiety and depression using evidence-based approaches. Her warm and empathetic style creates a safe space for healing.",
     image: "/therapists/sarah.jpg",
   },
@@ -46,6 +48,7 @@ export const therapists: Therapist[] = [
       { day: "Tuesday", times: ["10:00 AM", "12:00 PM", "3:00 PM"] },
       { day: "Thursday", times: ["9:00 AM", "11:00 AM", "1:00 PM", "4:00 PM"] },
     ],
+    languages: ["English", "Tamil", "Kannada"],
     bio: "Dr. Chen combines medication management with therapeutic techniques to provide comprehensive mental health care. He believes in treating the whole person, not just symptoms.",
     image: "/therapists/james.jpg",
   },
@@ -63,6 +66,7 @@ export const therapists: Therapist[] = [
       { day: "Tuesday", times: ["9:00 AM", "11:00 AM", "3:00 PM"] },
       { day: "Saturday", times: ["10:00 AM", "12:00 PM", "2:00 PM"] },
     ],
+    languages: ["English", "Spanish", "Telugu"],
     bio: "Dr. Rodriguez helps families and couples build stronger connections through improved communication and understanding. She creates a judgment-free zone for all.",
     image: "/therapists/emily.jpg",
   },
@@ -80,6 +84,7 @@ export const therapists: Therapist[] = [
       { day: "Thursday", times: ["10:00 AM", "2:00 PM", "4:00 PM"] },
       { day: "Friday", times: ["9:00 AM", "12:00 PM"] },
     ],
+    languages: ["English", "Hindi", "Marathi"],
     bio: "Dr. Thompson uses proven behavioral techniques to help clients overcome fears, compulsions, and unwanted behaviors. He focuses on practical, actionable strategies.",
     image: "/therapists/michael.jpg",
   },
@@ -97,6 +102,7 @@ export const therapists: Therapist[] = [
       { day: "Tuesday", times: ["9:00 AM", "1:00 PM", "3:00 PM"] },
       { day: "Thursday", times: ["10:00 AM", "12:00 PM", "2:00 PM"] },
     ],
+    languages: ["English", "Hindi", "Gujarati", "Urdu"],
     bio: "Dr. Patel specializes in trauma recovery using EMDR and other evidence-based approaches. She provides a compassionate space for healing from life's most difficult experiences.",
     image: "/therapists/aisha.jpg",
   },
@@ -114,6 +120,7 @@ export const therapists: Therapist[] = [
       { day: "Wednesday", times: ["9:00 AM", "11:00 AM", "3:00 PM"] },
       { day: "Friday", times: ["10:00 AM", "2:00 PM", "4:00 PM"] },
     ],
+    languages: ["English", "Bengali", "Malayalam"],
     bio: "Dr. Kim integrates mindfulness-based approaches with traditional therapy to help clients find balance, reduce stress, and cultivate inner peace in their daily lives.",
     image: "/therapists/david.jpg",
   },

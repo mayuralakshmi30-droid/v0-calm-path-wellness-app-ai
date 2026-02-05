@@ -14,7 +14,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAuth } from "@/lib/auth-context"
-import { Leaf, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Leaf, Eye, EyeOff, AlertCircle, CheckCircle2, MapPin, Globe } from "lucide-react"
 
 export default function SignupPage() {
   const router = useRouter()
@@ -23,6 +24,9 @@ export default function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [aboutYourself, setAboutYourself] = useState("")
+  const [age, setAge] = useState("")
+  const [location, setLocation] = useState("")
+  const [languagePreference, setLanguagePreference] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [showTerms, setShowTerms] = useState(false)
@@ -43,10 +47,25 @@ export default function SignupPage() {
       return
     }
 
+    if (!age || parseInt(age) < 13 || parseInt(age) > 120) {
+      setError("Please enter a valid age (13-120)")
+      return
+    }
+
+    if (!location.trim()) {
+      setError("Please enter your location")
+      return
+    }
+
+    if (!languagePreference) {
+      setError("Please select your language preference")
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      const success = await signup(name, email, password, aboutYourself)
+      const success = await signup(name, email, password, aboutYourself, parseInt(age), location, languagePreference)
       if (success) {
         router.push("/dashboard")
       } else {
@@ -152,6 +171,63 @@ export default function SignupPage() {
                   onChange={(e) => setAboutYourself(e.target.value)}
                   className="bg-background min-h-[100px] resize-none"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="age">Age</Label>
+                  <Input
+                    id="age"
+                    type="number"
+                    placeholder="25"
+                    min={13}
+                    max={120}
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    required
+                    className="bg-background"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="language">Language Preference</Label>
+                  <Select value={languagePreference} onValueChange={setLanguagePreference}>
+                    <SelectTrigger id="language" className="bg-background">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="English">English</SelectItem>
+                      <SelectItem value="Hindi">Hindi</SelectItem>
+                      <SelectItem value="Tamil">Tamil</SelectItem>
+                      <SelectItem value="Telugu">Telugu</SelectItem>
+                      <SelectItem value="Kannada">Kannada</SelectItem>
+                      <SelectItem value="Malayalam">Malayalam</SelectItem>
+                      <SelectItem value="Bengali">Bengali</SelectItem>
+                      <SelectItem value="Marathi">Marathi</SelectItem>
+                      <SelectItem value="Gujarati">Gujarati</SelectItem>
+                      <SelectItem value="Punjabi">Punjabi</SelectItem>
+                      <SelectItem value="Urdu">Urdu</SelectItem>
+                      <SelectItem value="Spanish">Spanish</SelectItem>
+                      <SelectItem value="French">French</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="location"
+                    type="text"
+                    placeholder="e.g., Mumbai, India"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    required
+                    className="bg-background pl-9"
+                  />
+                </div>
               </div>
 
               <div className="flex items-start gap-2">
