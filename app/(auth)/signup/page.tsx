@@ -67,6 +67,7 @@ export default function SignupPage() {
     try {
       const success = await signup(name, email, password, aboutYourself, parseInt(age), location, languagePreference)
       if (success) {
+        localStorage.setItem("calmpath_just_signed_up", "true")
         router.push("/dashboard")
       } else {
         setError("An account with this email already exists")
@@ -317,6 +318,34 @@ export default function SignupPage() {
                   <li>To match you with appropriate therapists</li>
                   <li>To track your wellness progress</li>
                   <li>To communicate important updates</li>
+                </ul>
+
+                <h4 className="font-medium mt-3 mb-1">AI-Driven Behavioral Insights & Data Usage</h4>
+                <p className="text-muted-foreground mb-2">
+                  By using CalmPath, you acknowledge and consent to the following:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  <li>Your mood tracking data, habit tracker activity, journal entries, and therapist session reports may be analyzed by our AI system to generate personalized behavioral insights and wellness recommendations</li>
+                  <li>AI-generated insights are updated on a weekly basis and are based on aggregated patterns from your data across all app features</li>
+                  <li>Therapist session reports and feedback you provide after sessions may be cross-referenced with your mood and habit data to deliver more accurate and relevant recommendations</li>
+                  <li>Your data is processed locally and is never shared with third parties for advertising or commercial purposes</li>
+                  <li>AI-generated insights are for informational purposes only and do not constitute medical advice or replace professional therapy</li>
+                  <li>You may delete your data at any time, which will also remove all AI-generated insights associated with your account</li>
+                </ul>
+
+                <h4 className="font-medium mt-3 mb-1">Panic Intervention Mode</h4>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  <li>CalmPath includes a Real-Time Panic Intervention Mode (PIM) accessible from all pages</li>
+                  <li>PIM provides guided breathing exercises and grounding techniques during panic or anxiety episodes</li>
+                  <li>PIM may offer emergency contact options including crisis helpline numbers</li>
+                  <li>PIM is not a substitute for emergency medical services. In life-threatening situations, please contact emergency services immediately</li>
+                </ul>
+
+                <h4 className="font-medium mt-3 mb-1">Rewards & Streaks</h4>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  <li>CalmPath offers a points and streak-based reward system through the Habit Tracker</li>
+                  <li>Discounts earned through streaks (e.g., 7-day streak = 5% off, 100-day streak = 30% off therapy sessions) are subject to availability and may change</li>
+                  <li>Rewards are non-transferable and apply only to therapy sessions booked through CalmPath</li>
                 </ul>
 
                 <h4 className="font-medium mt-3 mb-1">Data Security</h4>

@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation"
 import { AuthProvider, useAuth } from "@/lib/auth-context"
 import { AppProvider } from "@/lib/app-context"
 import { Sidebar } from "@/components/dashboard/sidebar"
+import { PanicIntervention } from "@/components/dashboard/panic-intervention"
+import { GuidedTour } from "@/components/dashboard/guided-tour"
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth()
@@ -41,6 +43,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      <PanicIntervention />
+      <GuidedTour />
     </div>
   )
 }
