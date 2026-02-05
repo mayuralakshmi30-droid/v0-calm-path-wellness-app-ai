@@ -69,6 +69,7 @@ interface AppContextType {
   addSessionReport: (sessionId: string, report: string) => void
   markMeetLinkUsed: (sessionId: string) => void
   getSessionByMeetCode: (meetCode: string) => Session | undefined
+  finishSession: (sessionId: string, report: string) => void
   chatMessages: ChatMessage[]
   addChatMessage: (message: Omit<ChatMessage, "id" | "timestamp">) => void
   getChatMessages: (therapistId: string) => ChatMessage[]
@@ -234,6 +235,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return sessions.find((s) => s.meetLink === `/dashboard/meet/${meetCode}`)
   }
 
+  // Single atomic update: mark completed + save report + mark link used
+  const finishSession = (sessionId: string, report: string) => {
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === sessionId
+          ? { ...s, status: "completed" as const, report, meetLinkUsed: true }
+          : s
+      )
+    )
+  }
+
   const addChatMessage = (message: Omit<ChatMessage, "id" | "timestamp">) => {
     const newMessage: ChatMessage = {
       ...message,
@@ -266,6 +278,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addSessionReport,
         markMeetLinkUsed,
         getSessionByMeetCode,
+        finishSession,
         chatMessages,
         addChatMessage,
         getChatMessages,

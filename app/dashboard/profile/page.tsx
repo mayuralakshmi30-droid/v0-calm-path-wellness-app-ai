@@ -72,8 +72,8 @@ export default function ProfilePage() {
   const [feedbackText, setFeedbackText] = useState("")
   const [viewReport, setViewReport] = useState<string | null>(null)
 
-  const completedSessions = sessions.filter(s => s.status === "completed")
-  const scheduledSessions = sessions.filter(s => s.status === "scheduled")
+  const completedSessions = sessions.filter(s => s.status === "completed").sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const scheduledSessions = sessions.filter(s => s.status === "scheduled").sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   const totalSpent = sessions.filter(s => (s.status === "completed" || s.status === "scheduled") && !s.isFree).reduce((acc, s) => acc + s.price, 0)
 
   const handleSubmitFeedback = () => {
@@ -399,7 +399,7 @@ export default function ProfilePage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {sessions.filter(s => s.status !== "cancelled").map((session) => (
+                        {sessions.filter(s => s.status !== "cancelled").sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((session) => (
                           <tr key={session.id} className="border-b border-border last:border-0">
                             <td className="py-3 px-4 text-sm">
                               {new Date(session.date).toLocaleDateString()}
@@ -419,9 +419,13 @@ export default function ProfilePage() {
                                 <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                                   Upcoming
                                 </Badge>
-                              ) : (
+                              ) : session.status === "completed" ? (
                                 <Badge variant="secondary" className="bg-green-100 text-green-700">
-                                  Paid
+                                  Completed
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="bg-red-100 text-red-700">
+                                  Cancelled
                                 </Badge>
                               )}
                             </td>

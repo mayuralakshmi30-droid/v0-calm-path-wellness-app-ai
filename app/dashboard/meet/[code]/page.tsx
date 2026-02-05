@@ -158,7 +158,7 @@ function downloadReportAsPDF(reportText: string, therapistName: string) {
 export default function MeetPage() {
   const params = useParams()
   const router = useRouter()
-  const { getSessionByMeetCode, markMeetLinkUsed, completeSession, addSessionReport, addSessionFeedback } = useApp()
+  const { getSessionByMeetCode, finishSession, addSessionFeedback } = useApp()
   const { user } = useAuth()
   const meetCode = params.code as string
 
@@ -224,11 +224,9 @@ export default function MeetPage() {
       callDuration,
     )
     setReportText(report)
-    // Save report and mark session
+    // Single atomic update: complete session + save report + expire link
     if (session) {
-      addSessionReport(session.id, report)
-      markMeetLinkUsed(session.id)
-      completeSession(session.id)
+      finishSession(session.id, report)
     }
     setPostCallStep("report")
     setCallState("ended")
