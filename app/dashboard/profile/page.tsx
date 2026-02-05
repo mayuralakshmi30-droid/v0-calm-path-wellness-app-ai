@@ -10,18 +10,71 @@ import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/lib/auth-context"
 import { useApp } from "@/lib/app-context"
 import Link from "next/link"
-import { User, Calendar, Clock, IndianRupee, Star, Download, MessageSquare, Check, X, MapPin, Globe, Video, ExternalLink } from "lucide-react"
+import { User, Calendar, Clock, IndianRupee, Star, Download, MessageSquare, Check, X, MapPin, Globe, Video, ExternalLink, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+function downloadReportPDF(reportText: string, therapistName: string) {
+  const printWindow = window.open("", "_blank")
+  if (!printWindow) {
+    const blob = new Blob([reportText], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `CalmPath_Report_${therapistName.replace(/\s/g, "_")}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+    return
+  }
+  const sections = reportText.split("--------------------------------------")
+  printWindow.document.write(`<!DOCTYPE html><html><head><title>CalmPath Report - ${therapistName}</title>
+    <style>
+      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+      body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.6; }
+      .header { text-align: center; border-bottom: 3px solid #16a34a; padding-bottom: 20px; margin-bottom: 30px; }
+      .header h1 { color: #16a34a; font-size: 24px; margin: 0 0 4px; }
+      .header p { color: #666; margin: 0; font-size: 13px; }
+      .meta { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+      .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .meta-item label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #666; display: block; }
+      .meta-item span { font-weight: 600; font-size: 14px; }
+      .section { margin-bottom: 24px; }
+      .section h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: #16a34a; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 12px; }
+      pre { white-space: pre-wrap; font-family: inherit; font-size: 14px; margin: 0; }
+      .footer { text-align: center; border-top: 1px solid #e5e7eb; padding-top: 16px; margin-top: 30px; color: #999; font-size: 11px; }
+    </style></head><body>
+    <div class="header"><h1>CalmPath</h1><p>Wellness Session Report</p></div>
+    ${sections.map((s: string, i: number) => {
+      const trimmed = s.trim()
+      if (i === 0) {
+        const lines = trimmed.split("\\n").filter((l: string) => l.includes(":"))
+        return '<div class="meta"><div class="meta-grid">' + lines.map((l: string) => {
+          const [label, ...val] = l.split(":")
+          return '<div class="meta-item"><label>' + label.trim() + '</label><span>' + val.join(":").trim() + '</span></div>'
+        }).join("") + '</div></div>'
+      }
+      if (!trimmed) return ""
+      const lines = trimmed.split("\\n")
+      const title = lines[0]
+      const content = lines.slice(1).join("\\n").trim()
+      if (!title || !content) return ""
+      return '<div class="section"><h2>' + title + '</h2><pre>' + content + '</pre></div>'
+    }).join("")}
+    <div class="footer"><p>Confidential - CalmPath Wellness Platform</p></div>
+    </body></html>`)
+  printWindow.document.close()
+  setTimeout(() => { printWindow.print() }, 500)
+}
 
 export default function ProfilePage() {
   const { user } = useAuth()
   const { sessions, addSessionFeedback } = useApp()
   const [feedbackSession, setFeedbackSession] = useState<string | null>(null)
   const [feedbackText, setFeedbackText] = useState("")
+  const [viewReport, setViewReport] = useState<string | null>(null)
 
   const completedSessions = sessions.filter(s => s.status === "completed")
   const scheduledSessions = sessions.filter(s => s.status === "scheduled")
-  const totalSpent = sessions.filter(s => s.status === "completed" && !s.isFree).reduce((acc, s) => acc + s.price, 0)
+  const totalSpent = sessions.filter(s => (s.status === "completed" || s.status === "scheduled") && !s.isFree).reduce((acc, s) => acc + s.price, 0)
 
   const handleSubmitFeedback = () => {
     if (feedbackSession && feedbackText.trim()) {
@@ -224,9 +277,9 @@ export default function ProfilePage() {
                   <p className="text-muted-foreground">No completed sessions yet</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {completedSessions.map((session) => (
-                    <div key={session.id} className="p-4 bg-muted/50 rounded-lg">
+                    <div key={session.id} className="p-4 bg-muted/50 rounded-lg space-y-3">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <p className="font-medium">{session.therapistName}</p>
@@ -237,36 +290,78 @@ export default function ProfilePage() {
                               day: "numeric",
                             })}
                           </p>
-                          {session.feedback && (
-                            <p className="text-sm text-muted-foreground mt-2 italic">
-                              {'"'}{session.feedback}{'"'}
-                            </p>
-                          )}
-                          {session.report && (
-                            <div className="mt-2 p-2 bg-background rounded border border-border">
-                              <p className="text-xs font-medium text-muted-foreground mb-1">Therapist Report:</p>
-                              <p className="text-sm">{session.report}</p>
-                            </div>
-                          )}
                         </div>
-                        <div className="text-right flex flex-col items-end gap-2">
+                        <div className="text-right">
                           {session.isFree ? (
                             <Badge variant="secondary">Free</Badge>
                           ) : (
                             <p className="font-bold">₹{session.price}</p>
                           )}
-                          {!session.feedback && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setFeedbackSession(session.id)}
-                            >
-                              <MessageSquare className="w-3 h-3 mr-1" />
-                              Feedback
-                            </Button>
-                          )}
                         </div>
                       </div>
+
+                      {/* Therapist Report */}
+                      {session.report && (
+                        <div className="p-3 bg-background border border-border rounded-lg space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-primary" />
+                              <span className="text-sm font-medium">Therapist Report</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setViewReport(viewReport === session.id ? null : session.id)}
+                              >
+                                {viewReport === session.id ? "Hide" : "View"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => downloadReportPDF(session.report!, session.therapistName)}
+                              >
+                                <Download className="w-3 h-3 mr-1" />
+                                PDF
+                              </Button>
+                            </div>
+                          </div>
+                          {viewReport === session.id && (
+                            <div className="bg-muted/50 rounded p-3 max-h-60 overflow-y-auto">
+                              <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed">
+                                {session.report}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Feedback Display */}
+                      {session.feedback && (
+                        <div className="p-3 bg-background border border-border rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Star className="w-4 h-4 text-amber-500" />
+                            <span className="text-sm font-medium">Your Feedback</span>
+                            <Badge variant="secondary" className="text-xs">Submitted</Badge>
+                          </div>
+                          <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans leading-relaxed">
+                            {session.feedback}
+                          </pre>
+                        </div>
+                      )}
+
+                      {/* Feedback Button (if no feedback yet) */}
+                      {!session.feedback && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setFeedbackSession(session.id)}
+                          className="w-full"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5 mr-2" />
+                          Leave Feedback
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -282,48 +377,60 @@ export default function ProfilePage() {
               <CardDescription>Your billing and payment records</CardDescription>
             </CardHeader>
             <CardContent>
-              {sessions.filter(s => s.status === "completed").length === 0 ? (
+              {sessions.filter(s => s.status !== "cancelled").length === 0 ? (
                 <div className="py-8 text-center">
                   <IndianRupee className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                   <p className="text-muted-foreground">No payment history yet</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Date</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Description</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Amount</th>
-                        <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sessions.filter(s => s.status === "completed").map((session) => (
-                        <tr key={session.id} className="border-b border-border last:border-0">
-                          <td className="py-3 px-4 text-sm">
-                            {new Date(session.date).toLocaleDateString()}
-                          </td>
-                          <td className="py-3 px-4 text-sm">
-                            Session with {session.therapistName}
-                          </td>
-                          <td className="py-3 px-4 text-sm text-right font-medium">
-                            {session.isFree ? (
-                              <span className="text-primary">₹0 (Free)</span>
-                            ) : (
-                              `₹${session.price}`
-                            )}
-                          </td>
-                          <td className="py-3 px-4 text-center">
-                            <Badge variant="secondary" className="bg-green-100 text-green-700">
-                              Paid
-                            </Badge>
-                          </td>
+                <>
+                  <div className="p-4 bg-muted/50 rounded-lg mb-4 flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">Total Amount Spent</span>
+                    <span className="text-2xl font-bold text-foreground">₹{totalSpent}</span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Date</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Description</th>
+                          <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Amount</th>
+                          <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {sessions.filter(s => s.status !== "cancelled").map((session) => (
+                          <tr key={session.id} className="border-b border-border last:border-0">
+                            <td className="py-3 px-4 text-sm">
+                              {new Date(session.date).toLocaleDateString()}
+                            </td>
+                            <td className="py-3 px-4 text-sm">
+                              Session with {session.therapistName}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-right font-medium">
+                              {session.isFree ? (
+                                <span className="text-primary">₹0 (Free)</span>
+                              ) : (
+                                `₹${session.price}`
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              {session.status === "scheduled" ? (
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                                  Upcoming
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                                  Paid
+                                </Badge>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>

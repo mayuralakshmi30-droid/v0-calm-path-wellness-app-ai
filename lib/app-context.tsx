@@ -66,6 +66,7 @@ interface AppContextType {
   cancelSession: (sessionId: string) => void
   completeSession: (sessionId: string) => void
   addSessionFeedback: (sessionId: string, feedback: string) => void
+  addSessionReport: (sessionId: string, report: string) => void
   markMeetLinkUsed: (sessionId: string) => void
   getSessionByMeetCode: (meetCode: string) => Session | undefined
   chatMessages: ChatMessage[]
@@ -217,6 +218,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  const addSessionReport = (sessionId: string, report: string) => {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, report } : s))
+    )
+  }
+
   const markMeetLinkUsed = (sessionId: string) => {
     setSessions((prev) =>
       prev.map((s) => (s.id === sessionId ? { ...s, meetLinkUsed: true } : s))
@@ -256,6 +263,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         cancelSession,
         completeSession,
         addSessionFeedback,
+        addSessionReport,
         markMeetLinkUsed,
         getSessionByMeetCode,
         chatMessages,
