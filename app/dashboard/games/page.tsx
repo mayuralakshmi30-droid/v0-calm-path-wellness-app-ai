@@ -1,10 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Gamepad2, Grid3X3, Brain, FileText, ArrowRight, Palette, Zap, Wind, Target, Puzzle, Calculator, Eye, Timer } from "lucide-react"
+import { Gamepad2, Grid3X3, Brain, FileText, ArrowRight, Palette, Wind, Target, Calculator, Eye, Timer } from "lucide-react"
 
 const games = [
   {
@@ -100,10 +101,6 @@ const games = [
 ]
 
 const categories = ["All", "Memory", "Logic", "Focus", "Words", "Relaxation"]
-
-"use client"
-
-import { useState } from "react"
 
 export default function GamesPage() {
   const [selectedCategory, setSelectedCategory] = useState("All")
